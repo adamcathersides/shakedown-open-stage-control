@@ -1,0 +1,49 @@
+$font: 'Roboto';
+$font-mono: 'Roboto Mono';
+$font-menu: sans-serif;
+/* font-size: '18px' */
+
+.root {
+    --color-background: #06587c;
+    --color-grid: #970095;
+    --color-ui-background: #00ff41;
+    --color-ui-background: #00ff41;
+}
+
+.knob-container {
+    --color-widget: #ff00b8;
+    --color-fill: #00ff5d; 
+    --color-stoke: #ff00f4;
+    --alpha-stroke: 1;
+    --alpha-fill-off: 0;
+    --alpha-fill-on: 0;
+    --line-width: 3;
+}
+
+.fader-container {
+    --color-widget: #ff00b8;
+    --color-fill: #00ff5d; 
+    --color-stoke: #ff00f4;
+    --alpha-stroke: 1;
+    --alpha-fill-off: 0;
+    --alpha-fill-on: 1;
+    --line-width: 3;
+}
+
+.panel-container {
+    --color-widget: #14ffea;
+    --color-background: #1d1d1d;
+    --alpha-stroke: 1;
+    --line-width: 0;
+}
+
+/* .button-container { */
+/*     --color-widget: #14ffea; */
+/*     --line-width: 1; */
+/*     --alpha-fill-off: 0; */
+/*     --alpha-fill-on: 0; */
+/*     --color-fill: #00ff5d;  */
+/* } */
+
+
+
