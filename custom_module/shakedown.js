@@ -1,9 +1,3 @@
-const { default: OBSWebSocket } = nativeRequire('obs-websocket-js');
-
-// OBS Config
-const obsIP = "127.0.0.1";
-const obs = new OBSWebSocket();
-
 function subscribeOscAddr(oscAddr, updates) {
     send('10.10.1.12', '10023', '/subscribe', {type:'s', value:oscAddr}, {type:'i', value:updates});
 }
@@ -55,7 +49,16 @@ for (const key in mix) {
     entry.osc.level = [];
     entry.osc.pan = [];
     entry.osc.channelstrip = [];
-    
+    entry.osc.eq_f = [
+        `/bus/${mix[key].mix}/eq/1/f`, 
+        `/bus/${mix[key].mix}/eq/2/f`, 
+        `/bus/${mix[key].mix}/eq/3/f`, 
+    ];
+    entry.osc.eq_g = [
+        `/bus/${mix[key].mix}/eq/1/g`, 
+        `/bus/${mix[key].mix}/eq/2/g`, 
+        `/bus/${mix[key].mix}/eq/3/g`, 
+    ];
     // Iterate over each channel in the ch array
     for (const channel of entry.ch) {
       // Construct the OSC path string and add it to osc.level array
@@ -91,7 +94,13 @@ function subscribeToMixes() {
 };
 
 function createMixer() {
-    let faders = {}, pan = {}, channelstrip = {};
+    let faders = {}, 
+        pan = {}, 
+        channelstrip = {}, 
+        eq_gain = {}, 
+        eq_freq = {},
+        eq_gain_labels = {},
+        eq_freq_labels = {};
 
     for (const key in mix) {
         if (Object.hasOwnProperty.call(mix, key)) {
@@ -100,6 +109,10 @@ function createMixer() {
             faders[key] = []
             pan[key] = []
             channelstrip[key] = []
+            eq_gain[key] = []
+            eq_freq[key] = []
+            eq_gain_labels[key] = []
+            eq_freq_labels[key] = []
 
             entry.osc.level.forEach(oscAddr => {
                 faders[key].push({
@@ -144,9 +157,62 @@ function createMixer() {
                 });
                 count+=1
             });
+            count = 1
+            entry.osc.eq_g.forEach(oscAddr => {
+                eq_gain[key].push({
+                    type: 'fader',
+                    id: `mix_${mix[key]["mix"]}_eq_${count}_gain`,
+                    address: oscAddr,
+                    target: '10.10.1.12:10023',
+                    design: 'round',
+                    expand: true,
+                    default: 0.5,
+                    doubleTap: true,
+                    onValue: `set("mix_${mix[key]["mix"]}_eq_${count}_gain_label", (value * 30 - 15).toFixed(1) + " dB");`
+                });
+                count+=1
+            });
+            count = 1
+            entry.osc.eq_f.forEach(oscAddr => {
+                eq_freq[key].push({
+                    type: 'knob',
+                    id: `mix_${mix[key]["mix"]}_eq_${count}_freq`,
+                    address: oscAddr,
+                    target: '10.10.1.12:10023',
+                    // design: 'round',
+                    expand: true,
+                    default: 0.5,
+                    doubleTap: true,
+                    onValue: `set("mix_${mix[key]["mix"]}_eq_${count}_freq_label", 20 * Math.pow(20000 / 20, value).toFixed(1) + " Hz");`
+                });
+                count+=1
+            });
+            count = 1
+            entry.osc.eq_g.forEach(oscAddr => {
+                eq_gain_labels[key].push({
+                    type: 'text',
+                    id: `mix_${mix[key]["mix"]}_eq_${count}_gain_label`,
+                    target: '10.10.1.12:10023',
+                    colorText: "#fffeb0", 
+                    expand: true,
+                    css: `:host{font-size: 12rem;font-weight:bold;text-shadow: 0px 0px 8px black}`,
+                });
+                count+=1
+            });
+            count = 1
+            entry.osc.eq_f.forEach(oscAddr => {
+                eq_freq_labels[key].push({
+                    type: 'text',
+                    id: `mix_${mix[key]["mix"]}_eq_${count}_freq_label`,
+                    target: '10.10.1.12:10023',
+                    colorText: "#fffeb0", 
+                    expand: true,
+                    css: `:host{font-size: 12rem;font-weight:bold;text-shadow: 0px 0px 8px black}`,
+                });
+                count+=1
+            });
         }
     }
-
     names.forEach(name => {
         setTimeout(() => {
             receive('', '', '/EDIT', `${name}_mixer_faders`, { widgets: faders[name], layout: 'horizontal' });
@@ -159,6 +225,18 @@ function createMixer() {
         setTimeout(() => {
             receive('', '', '/EDIT', `${name}_mixer_channelstrip`, { widgets: channelstrip[name], layout: 'horizontal' });
         }, 600);               
+        setTimeout(() => {
+            receive('', '', '/EDIT', `${name}_eq_gain`, { widgets: eq_gain[name], layout: 'horizontal' });
+        }, 800);               
+        setTimeout(() => {
+            receive('', '', '/EDIT', `${name}_eq_freq`, { widgets: eq_freq[name], layout: 'horizontal' });
+        }, 800);               
+        setTimeout(() => {
+            receive('', '', '/EDIT', `${name}_eq_gain_labels`, { widgets: eq_gain_labels[name], layout: 'horizontal' });
+        }, 800);               
+        setTimeout(() => {
+            receive('', '', '/EDIT', `${name}_eq_freq_labels`, { widgets: eq_freq_labels[name], layout: 'horizontal' });
+        }, 800);               
     });
 };
 //
